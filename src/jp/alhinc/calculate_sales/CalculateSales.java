@@ -41,7 +41,7 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-		File[] files = new File("C:\\Users\\trainee1422\\Desktop\\売上集計課題").listFiles();
+		File[] files = new File(args[0]).listFiles();
 
 		List<File> rcdFiles = new ArrayList<>();
 
@@ -133,7 +133,6 @@ public class CalculateSales {
 				String[] items = line.split(",");
 				branchNames.put(items[0], items[1]);
 				branchSales.put(items[0], 0L);
-				System.out.println(line);
 			}
 
 		} catch (IOException e) {

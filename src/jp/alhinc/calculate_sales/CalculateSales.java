@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,17 +35,17 @@ public class CalculateSales {
 	 * @param コマンドライン引数
 	 */
 	public static void main(String[] args) {
-		// 支店コードと支店名を保持するMap
-		Map<String, String> branchNames = new HashMap<>();
-		// 支店コードと売上金額を保持するMap
-		Map<String, Long> branchSales = new HashMap<>();
-
 		//コマンドライン引数が1つ設定されていなかった場合は、
 		//エラーメッセージをコンソールに表示(エラー3-1)
 		if (args.length != 1) {
 			System.out.println(UNKNOWN_ERROR);
 			return;
 		}
+
+		// 支店コードと支店名を保持するMap
+		Map<String, String> branchNames = new HashMap<>();
+		// 支店コードと売上金額を保持するMap
+		Map<String, Long> branchSales = new HashMap<>();
 
 		// 支店定義ファイル読み込み処理
 		if (!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
@@ -61,11 +62,12 @@ public class CalculateSales {
 			if (files[i].isFile() && files[i].getName().matches("^[0-9]{8}.rcd$")) {
 				rcdFiles.add(files[i]);
 			}
-
 		}
 
 		//2つのファイル名の数字を比較して
 		//差が1ではなかったらエラーメッセージを表示(エラー2-1)
+		Collections.sort(rcdFiles);
+
 		for (int i = 0; i < rcdFiles.size() - 1; i++) {
 			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
 			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
@@ -98,15 +100,12 @@ public class CalculateSales {
 				//売上金額をlistから取得
 				String sale = fileContents.get(1);
 
-				//売上金額が数字ではなかった場合は、
-				//エラーメッセージをコンソールに表示(エラー3-2)
-				if (!sale.matches("^[0-9]*$")) {
-					System.out.println(UNKNOWN_ERROR);
+				//売上ファイルの行数が2行ではなかった場合は、
+				//エラーメッセージをコンソールに表示(エラー2-4)
+				if (fileContents.size() != 2) {
+					System.out.println(file.getName() + RCD_FILE_INVALID_FORMAT);
 					return;
 				}
-
-				//取得したものをlongに変換
-				long fileSale = Long.parseLong(sale);
 
 				//支店情報を保持しているMapに売上ファイルの支店コードが存在しなかった場合、
 				//エラーメッセージをコンソールに表示（エラー2-3）
@@ -115,6 +114,16 @@ public class CalculateSales {
 					return;
 				}
 
+				//売上金額が数字ではなかった場合は、
+				//エラーメッセージをコンソールに表示(エラー3-2)
+				if (!sale.matches("^[0-9]+$")) {
+					System.out.println(UNKNOWN_ERROR);
+					return;
+				}
+
+				//取得したものをlongに変換
+				long fileSale = Long.parseLong(sale);
+
 				//売上金額が入っているマップ(branchSales)の支店コードから今の合計金額の取得
 				//上記を足す
 				Long saleAmount = branchSales.get(fileContents.get(0)) + fileSale;
@@ -122,13 +131,6 @@ public class CalculateSales {
 				//売上金額が11桁以上の場合、エラーメッセージをコンソールに表示(エラー2-2)
 				if (saleAmount >= 10000000000L) {
 					System.out.println(AMOUNT_OVERFLOW);
-					return;
-				}
-
-				//売上ファイルの行数が2行ではなかった場合は、
-				//エラーメッセージをコンソールに表示(エラー2-4)
-				if (fileContents.size() != 2) {
-					System.out.println(file.getName() + RCD_FILE_INVALID_FORMAT);
 					return;
 				}
 
